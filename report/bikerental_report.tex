@@ -4,12 +4,14 @@
 \usepackage{float}
 \usepackage{booktabs}
 \usepackage{hyperref}
+\usepackage{threeparttable}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.5pt}
 
 \title{
     \vspace{-1cm}
-    \Large\textbf{Bike Sharing Demand Forecasting:\\}
+    \Large\textbf{Bike Sharing Demand Forecasting:\\[0.3em]
+    A Count Regression Analysis using Poisson and Negative Binomial GLM}
 }
 \author{
     William Chen
@@ -32,10 +34,12 @@ violating the Poisson assumption of equal mean and variance. Negative
 Binomial regression (NB2) is adopted to address this, reducing the
 dispersion estimate to 1.046 and the AIC from 137,807 to 12,193.
 Zero-Inflated Poisson (ZIP) is found inapplicable as the minimum observed
-count is 22. The final NB2 model achieves a McFadden $R^2$ of 0.761 and identifies \textit{temp} (IRR $= 4.51$), \textit{yr1} (IRR $= 1.62$),
-and \textit{weathersit3} (IRR $= 0.48$) as the dominant predictors of
-daily rental demand.
+count is 22. The final NB2 model achieves a McFadden $R^2$ of 0.761 and
+a rolling-origin CV RMSE of 1{,}660, and identifies \textit{temp}
+(IRR $= 4.51$), \textit{yr1} (IRR $= 1.62$), and \textit{weathersit3}
+(IRR $= 0.48$) as the dominant predictors of daily rental demand.
 \end{abstract}
+
 
 \newpage
 %-----------------------------------------------------------------------
@@ -57,8 +61,10 @@ model for count data, and address the overdispersion present in the data
 using Negative Binomial regression (NB2). Zero-Inflated Poisson (ZIP) is
 also considered but found inapplicable given the absence of zero counts
 in the dataset. Model performance is evaluated using AIC, BIC, dispersion
-estimate, and McFadden $R^2$, with coefficients interpreted via Incidence
-Rate Ratios (IRR $= e^{\hat{\beta}}$).
+estimate, and McFadden $R^2$, with out-of-sample predictive performance
+assessed via rolling-origin cross-validated RMSE and MAE. Coefficients
+are interpreted via Incidence Rate Ratios (IRR $= e^{\hat{\beta}}$).
+
 
 %-----------------------------------------------------------------------
 \section{Data}
@@ -76,8 +82,12 @@ excluded from analysis), 1 continuous target (\textit{cnt}), and 13 predictors.
 Features span temporal (\textit{season}, \textit{yr}, \textit{mnth}, \textit{holiday},
 \textit{weekday}, \textit{workingday}), weather (\textit{weathersit}, \textit{temp},
 \textit{atemp}, \textit{hum}, \textit{windspeed}), and usage (\textit{casual},
-\textit{registered}) dimensions. Among the 13 predictors, 7 are categorical and
-4 are continuous.
+\textit{registered}) dimensions. 
+
+Of these 13 predictors, 7 are categorical and 6 are continuous.
+Two (\textit{casual}, \textit{registered}) are excluded from modelling
+due to target leakage, leaving 11 predictors for analysis.
+
 
 \subsection{Feature Selection and Preprocessing}
 Prior to modelling, four variables were removed from the dataset.
@@ -236,9 +246,8 @@ underestimated standard errors and unreliable inference.
 Negative Binomial regression is an extension of Poisson that introduces an
 additional dispersion parameter, allowing the variance to exceed the mean.
 It is the standard approach when overdispersion is detected in count data.
-Coefficients are interpreted in the same way as Poisson via IRR. When the
-dispersion parameter is very large, NB2 converges to Poisson, making
-Poisson a special case of NB2.
+Coefficients are interpreted in the same way as Poisson via IRR. When the dispersion parameter $\alpha$ approaches zero, NB2 converges
+to Poisson, making Poisson a special case of NB2.
 
 \subsection{Zero-Inflated Poisson (ZIP)}
 
@@ -251,16 +260,19 @@ and is excluded from further analysis.
 
 \subsection{Evaluation Metrics}
 
-Models are compared using AIC and BIC, which balance goodness of fit
-against model complexity. Lower values indicate a better model. The
-dispersion estimate (Residual Deviance / degrees of freedom) is used to
-verify whether the equidispersion assumption holds, with values close to 1
-indicating a well-fitted model. McFadden $R^2$ serves as a supplementary
-goodness-of-fit measure; however, it should be interpreted with caution
-under Poisson when overdispersion is present, as the inflated deviance can
-produce artificially high values. Binned residual plots provide a visual
-check of model fit by examining whether average residuals fall within the
-95\% confidence bands.
+Models are compared using both in-sample and out-of-sample metrics.
+AIC and BIC balance goodness of fit against model complexity, with lower
+values indicating a better model. The dispersion estimate (Residual
+Deviance / degrees of freedom) verifies whether the equidispersion
+assumption holds, with values close to 1 indicating a well-fitted model.
+McFadden $R^2$ serves as a supplementary goodness-of-fit measure; however,
+it should be interpreted with caution under Poisson when overdispersion is
+present, as the inflated deviance can produce artificially high values.
+Out-of-sample performance is assessed using CV RMSE and CV MAE, computed
+via a rolling-origin strategy to respect the temporal structure of the data.
+Binned residual plots provide a visual check of model fit by examining
+whether average residuals fall within the 95\% confidence bands.
+
 
 \paragraph{Quasi-Poisson.}
 An alternative approach for handling overdispersion is Quasi-Poisson, which
@@ -330,53 +342,81 @@ inherent difficulty of modelling extreme demand days.
     \label{fig:actual_pred}
 \end{figure}
 
-The estimated coefficients, expressed as Incidence Rate Ratios, 
-reveal the following key effects.
-\textit{temp} has the largest positive effect
-(IRR $= 4.508$, 95\% CI: $[3.755, 5.412]$), reflecting the strong
-sensitivity of cycling demand to thermal comfort. \textit{yr1}
-(IRR $= 1.619$, 95\% CI: $[1.561, 1.678]$) captures year-over-year
-service growth from 2011 to 2012. \textit{seasonFall} shows the highest
-seasonal effect (IRR $= 1.616$), with autumn demand approximately 62\%
-higher than the Winter baseline.
 
-On the negative side, \textit{weathersit3} (IRR $= 0.483$) indicates that
-snow or rain days are associated with roughly half the demand of clear days,
-and \textit{windspeed} (IRR $= 0.506$) similarly suppresses demand.
-Among weekday indicators, \textit{weekday1} is the only non-significant
-coefficient (95\% CI: $[0.996, 1.143]$ includes 1), suggesting that
-Monday demand does not differ meaningfully from the Sunday baseline.
+Table~\ref{tab:nb2_irr} presents the full set of estimated coefficients,
+expressed as Incidence Rate Ratios (IRR) with 95\% confidence intervals.
 
+\begin{table}[h]
+\centering
+\caption{NB2 Model Coefficients — Incidence Rate Ratios (IRR)}
+\label{tab:nb2_irr}
+\begin{tabular}{lrrr}
+\hline
+\textbf{Variable} & \textbf{IRR} & \textbf{95\% CI Lower} & \textbf{95\% CI Upper} \\
+\hline
+(Intercept)    & 1593.166 & 1382.437 & 1837.075 \\
+seasonSpring   & 1.389    & 1.301    & 1.483    \\
+seasonSummer   & 1.249    & 1.147    & 1.360    \\
+seasonFall     & 1.616    & 1.528    & 1.710    \\
+yr1            & 1.619    & 1.561    & 1.678    \\
+holiday1       & 0.809    & 0.724    & 0.907    \\
+weekday1       & 1.067    & 0.996    & 1.143    \\
+weekday2       & 1.086    & 1.016    & 1.161    \\
+weekday3       & 1.075    & 1.006    & 1.150    \\
+weekday4       & 1.099    & 1.028    & 1.175    \\
+weekday5       & 1.122    & 1.049    & 1.200    \\
+weekday6       & 1.094    & 1.023    & 1.169    \\
+weathersit2    & 0.902    & 0.861    & 0.946    \\
+weathersit3    & 0.483    & 0.427    & 0.547    \\
+temp           & 4.508    & 3.755    & 5.412    \\
+hum            & 0.744    & 0.622    & 0.891    \\
+windspeed      & 0.506    & 0.393    & 0.652    \\
+\hline
+\end{tabular}
+\begin{tablenotes}
+\small
+\item Reference categories: Winter (season), Year 0 (yr), Sunday (weekday),
+      Clear weather (weathersit), Non-holiday (holiday).
+      All continuous predictors are normalized to [0, 1].
+\end{tablenotes}
+\end{table}
+
+The results highlight several key patterns. Temperature is the dominant 
+predictor (IRR $= 4.508$), reflecting strong sensitivity of cycling demand 
+to thermal comfort. Year-over-year growth (IRR $= 1.619$) and seasonal 
+effects are also substantial, with autumn demand approximately 62\% higher 
+than the Winter baseline. Adverse weather (IRR $= 0.483$) and high wind 
+speed (IRR $= 0.506$) each suppress demand by roughly half. Among weekday 
+indicators, Monday (\textit{weekday1}) is the only non-significant predictor, 
+suggesting no meaningful difference from the Sunday baseline.
 
 
 \subsection{Model Comparison}
-Candidate models are compared using AIC, BIC, dispersion estimate, and
-McFadden $R^2$. Lower AIC and BIC indicate better fit relative to model
-complexity, while a dispersion estimate close to 1 confirms the
-variance assumption is satisfied.
-
-Table~\ref{tab:model_compare} summarises the two models across four metrics.
+Table~\ref{tab:model_compare} compares the two models across in-sample
+and out-of-sample metrics.
 
 \begin{table}[H]
     \centering
-    \caption{Model Comparison}
+    \caption{Model Comparison. AIC, BIC, Dispersion, and McFadden $R^2$
+    are in-sample; CV RMSE and CV MAE are out-of-sample, evaluated using
+    a rolling-origin strategy with 5 expanding windows.}
     \label{tab:model_compare}
-    \begin{tabular}{lrrrr}
+    \begin{tabular}{lrrrrrr}
         \toprule
-        \textbf{Model} & \textbf{AIC} & \textbf{BIC} & \textbf{Dispersion} & \textbf{McFadden $R^2$} \\
+        \textbf{Model} & \textbf{AIC} & \textbf{BIC} & \textbf{Dispersion} & \textbf{McFadden $R^2$} & \textbf{CV RMSE} & \textbf{CV MAE} \\
         \midrule
-        Poisson & 137,806.50 & 137,884.61 & 182.596 & 0.805 \\
-        NB2     &  12,193.16 &  12,275.86 &   1.046 & 0.761 \\
+        Poisson & 137,806.50 & 137,884.61 & 182.596 & 0.805 & 1489.626 & 1143.205 \\
+        NB2     &  12,193.16 &  12,275.86 &   1.046 & 0.761 & 1660.491 & 1287.878 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-NB2 outperforms Poisson across AIC and BIC by a large margin, and its
-dispersion estimate of 1.046 confirms that overdispersion is resolved.
-Although the Poisson model yields a higher McFadden $R^2$ (0.805 vs.\
-0.761), this is an artifact of overdispersion inflating the deviance-based
-statistic and should not be interpreted as evidence of better fit.
-NB2 is therefore selected as the final model.
+NB2 outperforms Poisson on AIC, BIC, and dispersion, confirming that
+overdispersion is resolved. The higher Poisson McFadden $R^2$ (0.805
+vs.\ 0.761) is an artifact of overdispersion inflating the deviance-based
+statistic.
+
+
 
 
 %-----------------------------------------------------------------------
@@ -392,18 +432,34 @@ the dominant predictor, with year-over-year growth (IRR $= 1.62$) and
 seasonal effects also contributing substantially. Adverse weather and
 high wind speed suppress demand by roughly half, while most weekday
 effects are significant except Monday, which does not differ detectably
-from the Sunday baseline.
+from the Sunday baseline. Although Poisson achieves lower CV RMSE
+(1489.6 vs.\ 1660.5), this reflects similar point estimates under the
+same link function rather than superior model specification; NB2 is
+preferred for its valid inference under overdispersion.
+
 
 \subsection{Limitations}
 
-Three limitations are worth noting. First, the model covers only two
-years of data, and the large \texttt{yr} coefficient may reflect a
-growth phase specific to that period rather than a persistent trend,
-limiting predictive validity for future years. Second, prediction errors
-are likely larger on extreme weather days, as such events are rare and
-poorly represented during training. Third, the model excludes interaction
-terms such as \texttt{temp:season}, which may capture more nuanced
-demand dynamics and improve performance.
+\paragraph{Data limitations.}
+Two limitations stem from the dataset itself. First, the model covers
+only two years of data, and the large \texttt{yr} coefficient may
+reflect a growth phase specific to that period rather than a persistent
+trend, limiting predictive validity for future years. Second, prediction
+errors are likely larger on extreme weather days, as such events are
+rare and poorly represented during training.
+
+\paragraph{Methodological limitations.}
+Two limitations concern model specification. First, the model excludes
+interaction terms such as \texttt{temp:season}, which may capture more
+nuanced demand dynamics and improve performance. Second, the model
+assumes independence across observations; however, daily rental counts
+exhibit inherent temporal structure. Residual autocorrelation was not
+formally assessed in this analysis. Future work could examine ACF plots
+or apply a Durbin-Watson test on model residuals, and consider
+time-series extensions such as ARIMA-GLM or generalised additive models
+with temporal smoothing terms.
+
+
 
 \begin{thebibliography}{9}
  
