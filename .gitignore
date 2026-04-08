@@ -55,3 +55,6 @@ data/
 *.fdb_latexmk
 *.synctex.gz
 *.out
+
+abstract.tex
+abstract.pdf

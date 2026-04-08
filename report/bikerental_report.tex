@@ -24,7 +24,7 @@
 
 %-----------------------------------------------------------------------
 \begin{abstract}
-This report analyses daily bike rental counts from the UCI Bike Sharing
+This report analyzes daily bike rental counts from the UCI Bike Sharing
 Dataset, comprising 731 observations collected from the Capital Bikeshare
 system in Washington D.C.\ between 2011 and 2012. Since \textit{cnt} is
 a non-negative integer, Poisson GLM is a more theoretically appropriate
@@ -47,12 +47,12 @@ a rolling-origin CV RMSE of 1{,}660, and identifies \textit{temp}
 Bike-sharing systems have become an increasingly popular form of urban
 transportation, offering a flexible and environmentally friendly
 alternative to private vehicles. Accurately forecasting daily rental
-demand is valuable for operators seeking to optimise fleet distribution,
+demand is valuable for operators seeking to optimize fleet distribution,
 staffing, and infrastructure planning. Demand is inherently influenced
 by a combination of weather conditions, seasonal patterns, and calendar
-effects, making it a well-suited problem for regression modelling.
+effects, making it a well-suited problem for regression modeling.
 
-This report analyses daily bike rental counts using the UCI Bike Sharing
+This report analyzes daily bike rental counts using the UCI Bike Sharing
 Dataset, which records 731 days of rental activity across 2011 and 2012
 in Washington D.C. Since the response variable \textit{cnt} is a
 non-negative integer, count regression is more theoretically appropriate
@@ -85,12 +85,12 @@ Features span temporal (\textit{season}, \textit{yr}, \textit{mnth}, \textit{hol
 \textit{registered}) dimensions. 
 
 Of these 13 predictors, 7 are categorical and 6 are continuous.
-Two (\textit{casual}, \textit{registered}) are excluded from modelling
+Two (\textit{casual}, \textit{registered}) are excluded from modeling
 due to target leakage, leaving 11 predictors for analysis.
 
 
 \subsection{Feature Selection and Preprocessing}
-Prior to modelling, four variables were removed from the dataset.
+Prior to modeling, four variables were removed from the dataset.
 \textit{instant} and \textit{dteday} are excluded as they serve purely as
 a record index and a date string respectively, carrying no predictive
 information. \textit{casual} and \textit{registered} are excluded due to
@@ -231,7 +231,7 @@ action.
 
 \subsection{Poisson GLM}
 
-Poisson GLM is a generalised linear model suited for count data. It uses a
+Poisson GLM is a generalized linear model suited for count data. It uses a
 log link function to model the expected count, ensuring all predicted values
 remain non-negative. The key advantage over OLS is that it respects the
 discrete, non-negative nature of the response variable. Coefficients are
@@ -333,7 +333,7 @@ Figure~\ref{fig:actual_pred} shows the actual versus predicted counts.
 Points align closely along the 45-degree reference line across the full
 range of demand, confirming good overall predictive performance. Slight
 deviations are observed at very low and very high counts, reflecting the
-inherent difficulty of modelling extreme demand days.
+inherent difficulty of modeling extreme demand days.
 
 \begin{figure}[H]
     \centering
@@ -456,7 +456,7 @@ assumes independence across observations; however, daily rental counts
 exhibit inherent temporal structure. Residual autocorrelation was not
 formally assessed in this analysis. Future work could examine ACF plots
 or apply a Durbin-Watson test on model residuals, and consider
-time-series extensions such as ARIMA-GLM or generalised additive models
+time-series extensions such as ARIMA-GLM or generalized additive models
 with temporal smoothing terms.
 
 
