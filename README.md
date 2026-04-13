@@ -1,4 +1,4 @@
-# Bike Sharing Demand Forecasting (GLM)
+# Bike Sharing Demand Forecasting (Poisson)
 Daily bike rental demand forecasting on the UCI Bike Sharing Dataset (731 observations, Washington D.C., 2011–2012). Starts from Poisson GLM, diagnoses severe overdispersion, and arrives at Negative Binomial regression as the final model (McFadden R² = 0.761, CV RMSE = 1,660).
 
 ## Motivation
