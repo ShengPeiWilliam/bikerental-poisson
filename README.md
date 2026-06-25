@@ -70,7 +70,7 @@ than any textbook description could.
 Next steps:
 - **Compare with OLS baseline**: the [OLS version](https://github.com/ShengPeiWilliam/bikerental-ml) achieved CV RMSE of 1,166. Understanding why OLS outperforms NB2 on RMSE despite being theoretically less appropriate would be a valuable investigation.
 - **Bayesian NB regression**: a Bayesian approach would quantify uncertainty around coefficient estimates, particularly useful given only two years of data where point estimates may be unstable.
-- **Interaction effects**: temperature likely behaves differently across seasons. Adding `temp:season` interactions could capture more nuanced demand dynamics.
+- **Interaction effects**: temperature likely behaves differently across seasons. Adding `temp:season` interactions could capture more nuanced demand dynamics. A related exploration using a different dataset and BSTS modeling is available in [citybike-aws-pipeline](https://github.com/ShengPeiWilliam/citibike-aws-pipeline).
 
 ## Repository
 
